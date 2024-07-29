@@ -1,6 +1,6 @@
 # 1 Introduction
 
-This is a biomedical data set built by Dr. Henrique da Mota during a medical residence period in the Group of Applied Research in Orthopaedics (GARO) of the Centre Médico-Chirurgical de Réadaptation des Massues in Lyon, France. In this project, I will apply both unsupervised and supervised analysis to the task of classifying whether a patient is normal or abnormal. In some other datasets there are three/four classes but we are working with the simpler dataset.
+This is a biomedical data set built by Dr. Henrique da Mota during a medical residence period in the Group of Applied Research in Orthopaedics (GARO) of the Centre Médico-Chirurgical de Réadaptation des Massues in Lyon, France. It consists of six numerical covariates and the class variable, with 310 observations; 210 are considered abnormal (AB), and 100 are normal (NO). In this project, I will apply both unsupervised and supervised analysis to the task of classifying whether a patient is normal or abnormal. In some other datasets there are three/four classes but we are working with the simpler dataset.
 
 This dataset is public and can be found at: https://www.kaggle.com/datasets/caesarlupum/vertebralcolumndataset or https://archive.ics.uci.edu/dataset/212/vertebral+column
 
@@ -8,50 +8,69 @@ This dataset is public and can be found at: https://www.kaggle.com/datasets/caes
 
 The dataset had no column names, so I used the metadata to rename all variables. Their unit of measurement along with the new names are specified in the table below [1], apart from the last variable which is the class.
 
-| Variable Name    | Full Name                  | Unit of Measurement              |
-|------------------|----------------------------|----------------------------------|
-| Pelvic_Inc       | Pelvic incidence           | Degrees (°)                      |
-| Pelvic_Tilt      | Pelvic tilt                | Degrees (°)                      |
-| Lumb_Lard_Angle  | Lumbar lordosis angle      | Degrees (°)                      |
-| Sacral_Slope     | Sacral slope               | Degrees (°)                      |
-| Pelvic_Rad       | Pelvic radius              | Millimeters or centimeters (mm/cm) |
-| Spond_Grade      | Grade of spondylolisthesis | Percentage (of slippage, %)      |
+| Variable Name      | Full Name                  | Unit of Measurement                |
+|--------------------|----------------------------|------------------------------------|
+| `Pelvic_Inc`       | Pelvic incidence           | Degrees (°)                        |
+| `Pelvic_Tilt`      | Pelvic tilt                | Degrees (°)                        |
+| `Lumb_Lard_Angle`  | Lumbar lordosis angle      | Degrees (°)                        |
+| `Sacral_Slope`     | Sacral slope               | Degrees (°)                        |
+| `Pelvic_Rad`       | Pelvic radius              | Millimeters or centimeters (mm/cm) |
+| `Spond_Grade`      | Grade of spondylolisthesis | Percentage (of slippage, %)        |
 
 
-The next figure shows the scatter matrix of all covariates, coloured by the two classes (blue for abnormal, red for normal). One thing to notice is the data is not linearly separable; in all combinations of variables there is a great deal of overlap. Additionally, in the Spond_Grade column/row there is a major outlier.
+The next figure shows the scatter matrix of all covariates, coloured by the two classes (blue for abnormal, red for normal). One thing to notice is the data is not linearly separable; in all combinations of variables there is a great deal of overlap. Additionally, in the `Spond_Grade` column/row there is a major outlier.
 
+![ScatterMatrixofIndeptVars](https://github.com/user-attachments/assets/1cd08799-b1e5-428e-acb9-52337281431a)
 
 The next plot shows the density plots of each covariate. Clearly, Spond_Grade
-is extremely right-skewed with multiple peaks, and other variables like Pelvic_Inc, Lumb_Lard_Angle and Sacral_Slope suggest that they have two or three peaks. Pelvic_Tilt and Pelvic_Rad seem the most approximately normal, with the former being slightly right-skewed. The multiple peaks may be an indicator of class separation, simplifying the classification process.
+is extremely right-skewed with multiple peaks, and other variables like `Pelvic_Inc`, `Lumb_Lard_Angle` and `Sacral_Slope` suggest that they have two or three peaks. `Pelvic_Tilt` and `Pelvic_Rad` seem the most approximately normal, with the former being slightly right-skewed. The multiple peaks may be an indicator of class separation, simplifying the classification process.
 
-Now, to detect outliers we will use boxplots - the figure below shows these for each covariate. Like we saw in the scatter matrix, a huge outlier can be seen in Spond_Grade - this is found to be observation 116 with a value of 418.54. We elect to omit only this observation; the other outliers seem marginal compared to 116. This is further supported by the (scaled) PCA biplot.
+![DensPlots](https://github.com/user-attachments/assets/103f66f3-2313-4b9a-997e-03280c41257a)
+
+Now, to detect outliers we will use boxplots - the figure below shows these for each covariate. Like we saw in the scatter matrix, a huge outlier can be seen in `Spond_Grade` - this is found to be observation 116 with a value of 418.54. We elect to omit only this observation; the other outliers seem marginal compared to 116. This is further supported by the (scaled) PCA biplot.
+
+![BoxPlotsIndeptVars](https://github.com/user-attachments/assets/fa4b8389-28ab-4d2a-9cee-bfa74ff22ae3)
+
+![PCABiplot](https://github.com/user-attachments/assets/3fdef1bb-4220-4b92-abb1-acfaf650ec77)
 
 # 3 Unsupervised Analysis
 
 We wish to capture the underlying structure of the data. One way to do this is through a clustering method.
 K-means clustering is a type of partitional clustering algorithm, whereby data objects are subsetted into non-overlapping groups, known as clusters. Each cluster has a centre, called a centroid, not necessarily an actual data object. The algorithm evaluates each data object by calculating the Eu- clidean distance from that and the centroids and assigns it to the nearest cluster. When a cluster gains or loses an observation, the algorithm then recalculates the centroid, and does this until there are no observations left to assign. It tries to minimise an objective function, the within cluster sum of squares [2]:
 
+![Screenshot 2024-07-29 at 14 39 16](https://github.com/user-attachments/assets/cc667762-edb4-4cbe-84ab-5287cf1c7d40)
 
 where $K$ is the total number of clusters, $S_k$ is the set of all points in cluster $k$, $w_i$ is the i-th point in $S_k$ and $c_k$ is the centroid of cluster $k$. This equation calculates the square of the Euclidean distance between a datapoint and the clusters’ centroids, summing over all clusters and all data points $i$ belonging to $S_k$.
+
+![ROCcurve](https://github.com/user-attachments/assets/502f690c-045f-41a7-9138-2d965f59b74f)
 
 There are many ways to choose k. The elbow method is the oldest and still one of the most popular ways - this requires plotting the WCSS against the number of clusters, and finding the ‘elbow’, i.e the point where the WCSS starts to decrease much slower. From the plot below, we determine that it is $k$ = 3.
 
 Looking at the clusters in the next plot, we see that the dimensions explain approximately 76% of the variance. The clusters themselves have slight overlap, and clusters 0 and 3 are tightly grouped, suggesting a need to change the number of clusters. Based on my analysis, 3 clusters could be meaningful in terms of identifying subgroups within the two class labels, i.e there may be levelling degrees of normality/abnormality in the orthopaedic research. This remains true, as the original dataset actually has 4 classes: DH (Disk Hernia), Spondylolisthesis (SL), Normal (NO) and Abnormal (AB), but we are utilising a simpler dataset for the purposes of this analysis.
 
+![KMeansCluster](https://github.com/user-attachments/assets/bb86efbb-2d7d-4571-8abf-8641c8da9f3a)
+
 # 4 Supervised Analysis
 
 Using the class labels, we’ll now attempt to classify patients between nor- mality and abnormality. Note that 209 observations are labelled abnormal, and 100 are normal, showing a class imbalance in the data - we need to be aware of this as some models perform worse with imbalances. One way to combat this is to apply class weights to our model which is just:
 
+![Screenshot 2024-07-29 at 14 39 29](https://github.com/user-attachments/assets/a7755dee-b167-44fc-b804-56484fe2d9d0)
+
 
 where $n_{samples}$ is the total number of observations in the dataset, and nclasses is the total number of classes, and $n_{{samples}_j}$ are the total number of observations in class $j$ [3].
+
 Although considered better for when number of attributes are larger than observations, Support Vector Machines (SVM) were chosen for this dataset. SVM uses regularisation parameters so it’s robust to overfitting, and when appropriately tuned, can be beneficial for imbalanced datasets. SVM use hyperplanes to best divide data into two classes. The support vectors are the data points closest to these hyperplanes [4]. These can be described as:
+
+![Screenshot 2024-07-29 at 14 39 37](https://github.com/user-attachments/assets/3f8d39f9-459d-452f-b5b3-e707132646a5)
 
 Considering that the scatter plot showed no linear separation, we use the
 radial basis function (RBF) kernel [4]:
 
+![Screenshot 2024-07-29 at 14 39 59](https://github.com/user-attachments/assets/af2a0156-416f-4fcc-ad2d-dd52ba9df2da)
 
 with the kernel, we now have the decision function:
 
+![Screenshot 2024-07-29 at 14 40 11](https://github.com/user-attachments/assets/feb1d293-b535-43b8-8b40-cbd03d2c21aa)
 
 where $v_i$ are constants to be found as part of the quadratic solving problem [4].
 
